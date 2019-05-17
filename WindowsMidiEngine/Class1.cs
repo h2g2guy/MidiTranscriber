@@ -3,22 +3,44 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.Devices.Midi;
 using Windows.Devices.Enumeration;
+using Windows.Foundation;
+using System.Threading;
+using System.Linq;
 
 namespace WindowsMidiEngine
 {
     public class MidiEngine
     {
-        public static async Task<List<string>> GetInputDevices()
+        public static IEnumerable<string> GetInputDevices()
         {
-            DeviceInformationCollection inputDevices = await DeviceInformation.FindAllAsync(MidiInPort.GetDeviceSelector());
+            IAsyncOperation<DeviceInformationCollection> inputDevices = DeviceInformation.FindAllAsync(MidiInPort.GetDeviceSelector());
 
-            List<string> names = new List<string>();
-            foreach (DeviceInformation device in inputDevices)
+            ManualResetEvent opCompletedEvent = new ManualResetEvent(false);
+
+            inputDevices.Completed = (a, b) => { opCompletedEvent.Set(); };
+
+            opCompletedEvent.WaitOne();
+
+            // Check the status of the operation
+            if (inputDevices.Status == AsyncStatus.Error)
             {
-                names.Add(device.Name);
+                DeviceInformationCollection deploymentResult = inputDevices.GetResults();
+                Console.WriteLine("Error code: {0}", inputDevices.ErrorCode);
+            }
+            else if (inputDevices.Status == AsyncStatus.Canceled)
+            {
+                Console.WriteLine("Installation canceled");
+            }
+            else if (inputDevices.Status == AsyncStatus.Completed)
+            {
+                Console.WriteLine("Installation succeeded");
+            }
+            else
+            {
+                Console.WriteLine("Installation status unknown");
             }
 
-            return names;
+            return inputDevices.GetResults().Select(device => device.Name);
         }
     }
 }

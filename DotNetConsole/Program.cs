@@ -10,11 +10,9 @@ namespace DotNetConsole
     {
         static void Main(string[] args)
         {
-            Task<List<string>> task = MidiEngine.GetInputDevices();
-            task.Wait();
-            List<string> devices = task.Result;
+            IEnumerable<string> task = MidiEngine.GetInputDevices();
 
-            foreach (string s in devices)
+            foreach (string s in task)
             {
                 Console.WriteLine(s);
             }
