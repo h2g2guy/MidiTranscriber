@@ -20,6 +20,7 @@ namespace Engine
 
     public enum IntervalQuality
     {
+        Undefined = -1,
         Diminished = 0,
         Minor = 1,
         Perfect = 2,
@@ -97,6 +98,8 @@ namespace Engine
         {
             this.midiNote = midiNote;
         }
+
+        public NoteName NoteName => this;
 
         public static implicit operator NoteName(Note note)
         {
